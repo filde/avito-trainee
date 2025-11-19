@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  blank-service:
+    image: avito-trainee:latest
+    container_name: avito-trainee
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
+        tag: "{{.Name}}"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PORT: 8080
+    expose:
+      - 8080
