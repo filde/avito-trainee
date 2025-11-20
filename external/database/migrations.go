@@ -2,6 +2,7 @@ package database
 
 import (
 	"avito-trainee/common/constants"
+	"avito-trainee/domains/models"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -21,7 +22,11 @@ func autoMigrate(db *gorm.DB) {
 	if err != nil {
 		log.Panic().Msgf("Couldn't create enum type: %v", err)
 	}
-	err = db.AutoMigrate()
+	err = db.AutoMigrate(
+		&models.Team{},
+		&models.User{},
+		&models.PullRequest{},
+	)
 	if err != nil {
 		log.Panic().Msgf("Couldn't auto migrate: %v", err)
 	}
