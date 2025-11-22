@@ -25,6 +25,12 @@ func GetError(code string, optional ...string) *models.ErrorType {
 		codeError.Message = constants.NOT_FOUND_TEXT
 	case constants.PR_EXISTS:
 		codeError.Message = constants.PR_EXISTS_TEXT
+	case constants.PR_MERGED:
+		codeError.Message = constants.PR_MERGED_TEXT
+	case constants.NO_CANDIDATE:
+		codeError.Message = constants.NO_CANDIDATE
+	case constants.NOT_ASSIGNED:
+		codeError.Message = constants.NOT_ASSIGNED
 	}
 	return codeError
 }
