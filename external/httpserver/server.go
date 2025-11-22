@@ -18,10 +18,12 @@ type StorageItf interface {
 	GetUser(userID string) (*models.UserFull, error)
 	GetUserPR(userID string) (*models.UsersPR, error)
 	GetTeamUsers(name string, author string) ([]*models.User, error)
+	GetTeamActiveUser(team string, notAllowed ...string) (*models.User, error)
 
 	CreatePR(pr *models.PullRequest) error
 	GetPR(id string) (*models.PullRequest, error)
 	MergePR(id string, mergeTime *time.Time) error
+	UpdatePR(pr *models.PullRequest) error
 }
 
 type HttpServer struct {
@@ -50,6 +52,7 @@ func Init(storage StorageItf) *HttpServer {
 
 	mux.HandleFunc("POST /pullRequest/create", httpServer.createPR)
 	mux.HandleFunc("POST /pullRequest/merge", httpServer.mergePR)
+	mux.HandleFunc("POST /pullRequest/reassign", httpServer.reassignPR)
 	mux.HandleFunc("/health", httpServer.health)
 
 	// Middlewares
