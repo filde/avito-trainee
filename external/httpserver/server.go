@@ -1,13 +1,17 @@
 package httpserver
 
 import (
+	"avito-trainee/domains/models"
 	"net/http"
 	"os"
 
 	"github.com/rs/zerolog/log"
 )
 
-type StorageItf interface{}
+type StorageItf interface {
+	CreateTeam(team *models.Team) (*models.ErrorType, error)
+	GetTeam(name string) (*models.Team, error)
+}
 
 type HttpServer struct {
 	storage     StorageItf
@@ -27,6 +31,7 @@ func Init(storage StorageItf) *HttpServer {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("POST /team/add", httpServer.addTeam)
 	mux.HandleFunc("/health", httpServer.health)
 
 	// Middlewares
