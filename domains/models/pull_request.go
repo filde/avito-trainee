@@ -7,8 +7,13 @@ type PullRequest struct {
 	PullRequestName   string     `gorm:"not null" json:"pull_request_name"`
 	AuthorID          string     `gorm:"not null" json:"author_id"`
 	Status            string     `gorm:"not null;type:status_enum" json:"status"`
-	CreatedAt         *time.Time `json:"createdAt"`
-	MergedAt          *time.Time `json:"mergedAt"`
+	CreatedAt         *time.Time `json:"-"`
+	MergedAt          *time.Time `json:"mergedAt;omitempty"`
 	User              `gorm:"foreignKey:AuthorID;references:UserID" json:"-"`
-	AssignedReviewers []*User `gorm:"many2many:pr_reviewers"`
+	Reviewers         []*User  `gorm:"many2many:pr_reviewers" json:"-"`
+	AssignedReviewers []string `json:"assigned_reviewers" gorm:"-"`
+}
+
+type PullRequestResponse struct {
+	PR *PullRequest `json:"pr"`
 }
