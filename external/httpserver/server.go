@@ -32,6 +32,7 @@ func Init(storage StorageItf) *HttpServer {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /team/add", httpServer.addTeam)
+	mux.HandleFunc("GET /team/get", httpServer.getTeam)
 	mux.HandleFunc("/health", httpServer.health)
 
 	// Middlewares
