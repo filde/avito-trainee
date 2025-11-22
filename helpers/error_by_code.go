@@ -21,6 +21,8 @@ func GetError(code string, optional ...string) *models.ErrorType {
 		} else {
 			codeError.Message = fmt.Sprintf(constants.TEAM_EXISTS_TEXT, optional[0])
 		}
+	case constants.NOT_FOUND:
+		codeError.Message = constants.NOT_FOUND_TEXT
 	}
 	return codeError
 }

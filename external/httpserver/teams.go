@@ -83,9 +83,9 @@ func (httpServer *HttpServer) getTeam(w http.ResponseWriter, r *http.Request) {
 	teamName := r.URL.Query().Get("team_name")
 	if teamName == "" {
 		log.Error().Msgf("Empty team name")
-		errByte, err := json.Marshal(helpers.GetError(constants.EMPTY_TEAM_NAME))
+		errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
 		if err != nil {
-			log.Error().Msgf("Couldn't marshal error %v:%v", constants.EMPTY_TEAM_NAME, err)
+			log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_FOUND, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
