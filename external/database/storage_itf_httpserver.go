@@ -7,6 +7,7 @@ import (
 	"avito-trainee/helpers"
 	"errors"
 	"gorm.io/gorm"
+	"time"
 )
 
 var _ httpserver.StorageItf = &Database{}
@@ -86,4 +87,10 @@ func (db *Database) GetPR(id string) (*models.PullRequest, error) {
 	var pr *models.PullRequest
 	err := db.Model(&models.PullRequest{}).Where("pull_request_id = ?", id).First(&pr).Error
 	return pr, err
+}
+
+func (db *Database) MergePR(id string, mergeTime *time.Time) error {
+	err := db.Model(&models.PullRequest{}).Where("pull_request_id = ?", id).
+		Update("status", constants.MERGED_STATUS).Update("merged_at = ?", mergeTime).Error
+	return err
 }
