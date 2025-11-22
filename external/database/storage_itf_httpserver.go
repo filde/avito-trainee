@@ -55,3 +55,9 @@ func (db *Database) GetUser(userID string) (*models.UserFull, error) {
 	err := db.Model(&models.User{}).Where("user_id = ?", userID).First(&user).Error
 	return user, err
 }
+
+func (db *Database) GetUserPR(userID string) (*models.UsersPR, error) {
+	var user *models.UsersPR
+	err := db.Model(&models.User{}).Preload("PullRequests").First(*user).Error
+	return user, err
+}
