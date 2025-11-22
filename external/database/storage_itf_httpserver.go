@@ -73,8 +73,8 @@ func (db *Database) TeamExists(name string) error {
 func (db *Database) GetTeamUsers(name string, author string) ([]*models.User, error) {
 	var users []*models.User
 	err := db.Model(&models.User{}).Where("team_name = ?", name).
-		Where("user_id <> ?", author).Order("RANDOM()").Limit(2).
-		Find(&users).Error
+		Where("user_id <> ?", author).Where("is_active = ?", true).
+		Order("RANDOM()").Limit(2).Find(&users).Error
 	return users, err
 }
 
@@ -85,12 +85,25 @@ func (db *Database) CreatePR(pr *models.PullRequest) error {
 
 func (db *Database) GetPR(id string) (*models.PullRequest, error) {
 	var pr *models.PullRequest
-	err := db.Model(&models.PullRequest{}).Where("pull_request_id = ?", id).First(&pr).Error
+	err := db.Model(&models.PullRequest{}).Preload("Reviewers").Where("pull_request_id = ?", id).First(&pr).Error
 	return pr, err
 }
 
 func (db *Database) MergePR(id string, mergeTime *time.Time) error {
 	err := db.Model(&models.PullRequest{}).Where("pull_request_id = ?", id).
 		Update("status", constants.MERGED_STATUS).Update("merged_at = ?", mergeTime).Error
+	return err
+}
+
+func (db *Database) GetTeamActiveUser(team string, notAllowed ...string) (*models.User, error) {
+	var user *models.User
+	err := db.Model(&models.User{}).Where("team_name = ?", team).
+		Where("user_id now in ?", notAllowed).Where("is_active = ?", true).
+		Order("RANDOM()").First(&user).Error
+	return user, err
+}
+
+func (db *Database) UpdatePR(pr *models.PullRequest) error {
+	err := db.Updates(pr).Error
 	return err
 }
