@@ -14,6 +14,7 @@ type StorageItf interface {
 
 	UpdateUserActivity(userID string, isActive bool) error
 	GetUser(userID string) (*models.UserFull, error)
+	GetUserPR(userID string) (*models.UsersPR, error)
 }
 
 type HttpServer struct {
@@ -38,6 +39,7 @@ func Init(storage StorageItf) *HttpServer {
 	mux.HandleFunc("GET /team/get", httpServer.getTeam)
 
 	mux.HandleFunc("POST /users/setIsActive", httpServer.setIsActive)
+	mux.HandleFunc("GET /users/getReview", httpServer.getUserReview)
 	mux.HandleFunc("/health", httpServer.health)
 
 	// Middlewares

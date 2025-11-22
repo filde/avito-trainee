@@ -67,7 +67,60 @@ func (httpServer *HttpServer) setIsActive(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	userByte, err := json.Marshal(userNew)
+
+	userByte, err := json.Marshal(&models.UserResponse{User: userNew})
+	if err != nil {
+		log.Error().Msgf("Couldn't marshal user json: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	ok := helpers.WriteResponse(w, userByte)
+	if !ok {
+		return
+	}
+}
+
+func (httpServer *HttpServer) getUserReview(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		log.Error().Msgf("Empty user id")
+		errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
+		if err != nil {
+			log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_FOUND, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		ok := helpers.WriteResponse(w, errByte)
+		if !ok {
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user, err := httpServer.storage.GetUserPR(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
+			if err != nil {
+				log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_FOUND, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			ok := helpers.WriteResponse(w, errByte)
+			if !ok {
+				return
+			}
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		log.Error().Msgf("Couldn't get user from db: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	userByte, err := json.Marshal(user)
 	if err != nil {
 		log.Error().Msgf("Couldn't marshal user json: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
