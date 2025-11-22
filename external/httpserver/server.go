@@ -11,6 +11,9 @@ import (
 type StorageItf interface {
 	CreateTeam(team *models.Team) (*models.ErrorType, error)
 	GetTeam(name string) (*models.Team, error)
+
+	UpdateUserActivity(userID string, isActive bool) error
+	GetUser(userID string) (*models.UserFull, error)
 }
 
 type HttpServer struct {
@@ -33,6 +36,8 @@ func Init(storage StorageItf) *HttpServer {
 
 	mux.HandleFunc("POST /team/add", httpServer.addTeam)
 	mux.HandleFunc("GET /team/get", httpServer.getTeam)
+
+	mux.HandleFunc("POST /users/setIsActive", httpServer.setIsActive)
 	mux.HandleFunc("/health", httpServer.health)
 
 	// Middlewares

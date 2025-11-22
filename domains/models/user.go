@@ -7,3 +7,10 @@ type User struct {
 	IsActive bool   `gorm:"not null" json:"is_active"`
 	Team     `gorm:"foreignKey:TeamName;references:TeamName" json:"-"`
 }
+
+type UserFull struct {
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	TeamName string `json:"team_name"`
+	IsActive string `json:"is_active"`
+}

@@ -28,6 +28,8 @@ func (httpServer *HttpServer) addTeam(w http.ResponseWriter, r *http.Request) {
 		errByte, err := json.Marshal(helpers.GetError(constants.BAD_BODY))
 		if err != nil {
 			log.Error().Msgf("Couldn't marshal body error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		ok := helpers.WriteResponse(w, errByte)
 		if !ok {
