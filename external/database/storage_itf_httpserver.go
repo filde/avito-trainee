@@ -61,3 +61,29 @@ func (db *Database) GetUserPR(userID string) (*models.UsersPR, error) {
 	err := db.Model(&models.User{}).Preload("PullRequests").First(*user).Error
 	return user, err
 }
+
+func (db *Database) TeamExists(name string) error {
+	var i int
+	err := db.Model(&models.Team{}).Where("team_name = ?", name).Select("1").
+		First(&i).Error
+	return err
+}
+
+func (db *Database) GetTeamUsers(name string, author string) ([]*models.User, error) {
+	var users []*models.User
+	err := db.Model(&models.User{}).Where("team_name = ?", name).
+		Where("user_id <> ?", author).Order("RANDOM()").Limit(2).
+		Find(&users).Error
+	return users, err
+}
+
+func (db *Database) CreatePR(pr *models.PullRequest) error {
+	err := db.Create(&pr).Error
+	return err
+}
+
+func (db *Database) GetPR(id string) (*models.PullRequest, error) {
+	var pr *models.PullRequest
+	err := db.Model(&models.PullRequest{}).Where("pull_request_id = ?", id).First(&pr).Error
+	return pr, err
+}
