@@ -41,6 +41,14 @@ func (httpServer *HttpServer) setIsActive(w http.ResponseWriter, r *http.Request
 
 	err = httpServer.storage.UpdateUserActivity(user.UserID, user.IsActive)
 	if err != nil {
+
+		log.Error().Msgf("Couldn't update user activity: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	userNew, err := httpServer.storage.GetUser(user.UserID)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
 			if err != nil {
@@ -55,14 +63,7 @@ func (httpServer *HttpServer) setIsActive(w http.ResponseWriter, r *http.Request
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		log.Error().Msgf("Couldn't update user activity: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	userNew, err := httpServer.storage.GetUser(user.UserID)
-	if err != nil {
-		log.Error().Msgf("Couldn't get update user %v: %v", user.UserID, err)
+		log.Error().Msgf("Couldn't get updated user %v: %v", user.UserID, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -44,3 +44,14 @@ func (db *Database) GetTeam(name string) (*models.Team, error) {
 		First(&team).Error
 	return team, err
 }
+
+func (db *Database) UpdateUserActivity(userID string, isActive bool) error {
+	err := db.Model(&models.User{}).Where("user_id = ?", userID).Update("is_active", isActive).Error
+	return err
+}
+
+func (db *Database) GetUser(userID string) (*models.UserFull, error) {
+	var user *models.UserFull
+	err := db.Model(&models.User{}).Where("user_id = ?", userID).First(&user).Error
+	return user, err
+}
