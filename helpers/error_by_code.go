@@ -23,6 +23,8 @@ func GetError(code string, optional ...string) *models.ErrorType {
 		}
 	case constants.NOT_FOUND:
 		codeError.Message = constants.NOT_FOUND_TEXT
+	case constants.PR_EXISTS:
+		codeError.Message = constants.PR_EXISTS_TEXT
 	}
 	return codeError
 }

@@ -137,3 +137,76 @@ func (httpServer *HttpServer) createPR(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 }
+
+func (httpServer *HttpServer) mergePR(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Msgf("Couldn't get body from request: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var pr *models.PullRequest
+	err = json.Unmarshal(body, &pr)
+	if err != nil {
+		log.Error().Msgf("Couldn't unmarshal body: %v", err)
+		errByte, err := json.Marshal(helpers.GetError(constants.BAD_BODY))
+		if err != nil {
+			log.Error().Msgf("Couldn't marshal body error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		ok := helpers.WriteResponse(w, errByte)
+		if !ok {
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	tNow := time.Now()
+	err = httpServer.storage.MergePR(pr.PullRequestID, &tNow)
+	if err != nil {
+
+		log.Error().Msgf("Couldn't merge pr %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	prNew, err := httpServer.storage.GetPR(pr.PullRequestID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
+			if err != nil {
+				log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_FOUND, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			ok := helpers.WriteResponse(w, errByte)
+			if !ok {
+				return
+			}
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		log.Error().Msgf("Couldn't get merged pr from db: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	for i := 0; i < len(prNew.Reviewers); i++ {
+		prNew.AssignedReviewers[i] = prNew.Reviewers[i].UserID
+	}
+
+	prByte, err := json.Marshal(&models.PullRequestResponse{PR: prNew})
+	if err != nil {
+		log.Error().Msgf("Couldn't marshal pr json: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	ok := helpers.WriteResponse(w, prByte)
+	if !ok {
+		return
+	}
+}

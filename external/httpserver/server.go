@@ -4,6 +4,7 @@ import (
 	"avito-trainee/domains/models"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -20,6 +21,7 @@ type StorageItf interface {
 
 	CreatePR(pr *models.PullRequest) error
 	GetPR(id string) (*models.PullRequest, error)
+	MergePR(id string, mergeTime *time.Time) error
 }
 
 type HttpServer struct {
@@ -47,6 +49,7 @@ func Init(storage StorageItf) *HttpServer {
 	mux.HandleFunc("GET /users/getReview", httpServer.getUserReview)
 
 	mux.HandleFunc("POST /pullRequest/create", httpServer.createPR)
+	mux.HandleFunc("POST /pullRequest/merge", httpServer.mergePR)
 	mux.HandleFunc("/health", httpServer.health)
 
 	// Middlewares
