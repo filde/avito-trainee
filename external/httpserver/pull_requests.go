@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -178,34 +179,28 @@ func (httpServer *HttpServer) reassignPR(w http.ResponseWriter, r *http.Request)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
 
-	//user, err := httpServer.storage.GetUser(newRev.OldReviewerID)
-	//if err != nil {
-	//	if errors.Is(err, gorm.ErrRecordNotFound) {
-	//		errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
-	//		if err != nil {
-	//			log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_FOUND, err)
-	//			w.WriteHeader(http.StatusInternalServerError)
-	//			return
-	//		}
-	//		ok := helpers.WriteResponse(w, errByte)
-	//		if !ok {
-	//			return
-	//		}
-	//		w.WriteHeader(http.StatusNotFound)
-	//		return
-	//	}
-	//	log.Error().Msgf("Couldn't get user from db: %v", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
+	user, err := httpServer.storage.GetUser(newRev.OldReviewerID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			errByte, err := json.Marshal(helpers.GetError(constants.NOT_FOUND))
+			if err != nil {
+				log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_FOUND, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
+			return
+		}
+		log.Error().Msgf("Couldn't get user from db: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	pr, err := httpServer.storage.GetPR(newRev.PullRequestID)
 	if err != nil {
@@ -216,11 +211,8 @@ func (httpServer *HttpServer) reassignPR(w http.ResponseWriter, r *http.Request)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			ok := helpers.WriteResponse(w, errByte)
-			if !ok {
-				return
-			}
 			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
 			return
 		}
 		log.Error().Msgf("Couldn't get pr from db: %v", err)
@@ -229,66 +221,50 @@ func (httpServer *HttpServer) reassignPR(w http.ResponseWriter, r *http.Request)
 	}
 
 	if pr.Status == constants.MERGED_STATUS {
-		log.Error().Msgf("Try changed reviewer in merged pr")
+		log.Error().Msgf("Try changed reviewer in merged pr: %v", pr.PullRequestID)
 		errByte, err := json.Marshal(helpers.GetError(constants.PR_MERGED))
 		if err != nil {
 			log.Error().Msgf("Couldn't marshal error %v:%v", constants.PR_MERGED, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
+		w.WriteHeader(http.StatusConflict)
+		helpers.WriteResponse(w, errByte)
+		return
+	}
+
+	if !slices.Contains(pr.AssignedReviewers, newRev.OldReviewerID) {
+		log.Error().Msgf("%v is not reviewer of pr %v", newRev.OldReviewerID, newRev.PullRequestID)
+		errByte, err := json.Marshal(helpers.GetError(constants.NOT_ASSIGNED))
+		if err != nil {
+			log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_ASSIGNED, err)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusConflict)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
-	//var usersList = []string{pr.AuthorID}
-	//isReviewer := false
-	//var i int
-	//for i = 0; i < len(pr.Reviewers); i++ {
-	//	usersList = append(usersList, pr.Reviewers[i].UserID)
-	//	isReviewer = isReviewer || (pr.Reviewers[i].UserID == newRev.OldReviewerID)
-	//}
-	//if !isReviewer {
-	//	log.Error().Msgf("%v is not reviewer of pr %v", newRev.OldReviewerID, newRev.PullRequestID)
-	//	errByte, err := json.Marshal(helpers.GetError(constants.NOT_ASSIGNED))
-	//	if err != nil {
-	//		log.Error().Msgf("Couldn't marshal error %v:%v", constants.NOT_ASSIGNED, err)
-	//		w.WriteHeader(http.StatusInternalServerError)
-	//		return
-	//	}
-	//	ok := helpers.WriteResponse(w, errByte)
-	//	if !ok {
-	//		return
-	//	}
-	//	w.WriteHeader(http.StatusConflict)
-	//	return
-	//}
 
-	//cand, err := httpServer.storage.GetTeamActiveUser(user.TeamName, usersList...)
-	//if err != nil {
-	//	if errors.Is(err, gorm.ErrRecordNotFound) {
-	//		errByte, err := json.Marshal(helpers.GetError(constants.NO_CANDIDATE))
-	//		if err != nil {
-	//			log.Error().Msgf("Couldn't marshal error %v:%v", constants.NO_CANDIDATE, err)
-	//			w.WriteHeader(http.StatusInternalServerError)
-	//			return
-	//		}
-	//		ok := helpers.WriteResponse(w, errByte)
-	//		if !ok {
-	//			return
-	//		}
-	//		w.WriteHeader(http.StatusNotFound)
-	//		return
-	//	}
-	//	log.Error().Msgf("Couldn't find new candidate: %v", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
+	cand, err := httpServer.storage.GetTeamActiveUser(user.TeamName, append(pr.AssignedReviewers, pr.AuthorID)...)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			errByte, err := json.Marshal(helpers.GetError(constants.NO_CANDIDATE))
+			if err != nil {
+				log.Error().Msgf("Couldn't marshal error %v:%v", constants.NO_CANDIDATE, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
+			return
+		}
+		log.Error().Msgf("Couldn't find new candidate: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	//pr.Reviewers[i] = cand
-	err = httpServer.storage.UpdatePR(pr)
+	err = httpServer.storage.ChangeReviewer(newRev, cand)
 	if err != nil {
 		log.Error().Msgf("Couldn't update pr reviewers: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -302,18 +278,11 @@ func (httpServer *HttpServer) reassignPR(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	//for i := 0; i < len(prNew.Reviewers); i++ {
-	//	prNew.AssignedReviewers[i] = prNew.Reviewers[i].UserID
-	//}
-
-	prByte, err := json.Marshal(&models.PullRequestResponse{PR: prNew})
+	prByte, err := json.Marshal(&models.PullRequestResponse{PR: prNew, ReplacedBy: cand})
 	if err != nil {
 		log.Error().Msgf("Couldn't marshal pr json: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	ok := helpers.WriteResponse(w, prByte)
-	if !ok {
-		return
-	}
+	helpers.WriteResponse(w, prByte)
 }

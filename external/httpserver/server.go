@@ -17,12 +17,12 @@ type StorageItf interface {
 	GetUser(userID string) (*models.UserFull, error)
 	GetUserPR(userID string) (*models.UsersPR, error)
 	GetTeamReviewers(name string, author string) ([]string, error)
-	GetTeamActiveUser(team string, notAllowed ...string) (*models.User, error)
+	GetTeamActiveUser(team string, notAllowed ...string) (string, error)
 
 	CreatePR(pr *models.PullRequest) error
 	GetPR(id string) (*models.PullRequest, error)
 	MergePR(id string, mergeTime *time.Time) error
-	UpdatePR(pr *models.PullRequest) error
+	ChangeReviewer(oldReviewer *models.NewPRReviewer, newReviewer string) error
 }
 
 type HttpServer struct {

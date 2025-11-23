@@ -126,15 +126,16 @@ func (db *Database) MergePR(id string, mergeTime *time.Time) error {
 	return err
 }
 
-func (db *Database) GetTeamActiveUser(team string, notAllowed ...string) (*models.User, error) {
-	var user *models.User
+func (db *Database) GetTeamActiveUser(team string, notAllowed ...string) (string, error) {
+	var user string
 	err := db.Model(&models.User{}).Where("team_name = ?", team).
-		Where("user_id now in ?", notAllowed).Where("is_active = ?", true).
-		Order("RANDOM()").First(&user).Error
+		Where("user_id not in ?", notAllowed).Where("is_active = ?", true).
+		Order("RANDOM()").Select("user_id").First(&user).Error
 	return user, err
 }
 
-func (db *Database) UpdatePR(pr *models.PullRequest) error {
-	err := db.Updates(pr).Error
+func (db *Database) ChangeReviewer(oldReviewer *models.NewPRReviewer, newReviewer string) error {
+	err := db.Model(&models.PullRequestReviewers{}).Where("pull_req_id = ?", oldReviewer.PullRequestID).
+		Where("reviewer_id = ?", oldReviewer.OldReviewerID).Update("reviewer_id", newReviewer).Error
 	return err
 }
