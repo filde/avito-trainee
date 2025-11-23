@@ -31,17 +31,13 @@ func (httpServer *HttpServer) setIsActive(w http.ResponseWriter, r *http.Request
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
 
 	err = httpServer.storage.UpdateUserActivity(user.UserID, user.IsActive)
 	if err != nil {
-
 		log.Error().Msgf("Couldn't update user activity: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -56,11 +52,8 @@ func (httpServer *HttpServer) setIsActive(w http.ResponseWriter, r *http.Request
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			ok := helpers.WriteResponse(w, errByte)
-			if !ok {
-				return
-			}
 			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
 			return
 		}
 		log.Error().Msgf("Couldn't get updated user %v: %v", user.UserID, err)
@@ -74,10 +67,7 @@ func (httpServer *HttpServer) setIsActive(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	ok := helpers.WriteResponse(w, userByte)
-	if !ok {
-		return
-	}
+	helpers.WriteResponse(w, userByte)
 }
 
 func (httpServer *HttpServer) getUserReview(w http.ResponseWriter, r *http.Request) {
@@ -91,11 +81,8 @@ func (httpServer *HttpServer) getUserReview(w http.ResponseWriter, r *http.Reque
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
 
@@ -108,11 +95,8 @@ func (httpServer *HttpServer) getUserReview(w http.ResponseWriter, r *http.Reque
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			ok := helpers.WriteResponse(w, errByte)
-			if !ok {
-				return
-			}
 			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
 			return
 		}
 		log.Error().Msgf("Couldn't get user from db: %v", err)
@@ -126,8 +110,5 @@ func (httpServer *HttpServer) getUserReview(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	ok := helpers.WriteResponse(w, userByte)
-	if !ok {
-		return
-	}
+	helpers.WriteResponse(w, userByte)
 }
