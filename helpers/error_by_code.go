@@ -29,9 +29,9 @@ func GetError(code string, optional ...string) *models.ErrorType {
 	case constants.PR_MERGED:
 		codeError.Message = constants.PR_MERGED_TEXT
 	case constants.NO_CANDIDATE:
-		codeError.Message = constants.NO_CANDIDATE
+		codeError.Message = constants.NO_CANDIDATE_TEXT
 	case constants.NOT_ASSIGNED:
-		codeError.Message = constants.NOT_ASSIGNED
+		codeError.Message = constants.NOT_ASSIGNED_TEXT
 	}
 	return codeError
 }
