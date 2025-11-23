@@ -36,14 +36,12 @@ func GetError(code string, optional ...string) *models.ErrorType {
 	return codeError
 }
 
-func WriteResponse(w http.ResponseWriter, response []byte) bool {
+func WriteResponse(w http.ResponseWriter, response []byte) {
 	_, err := w.Write(response)
 	if err != nil {
 		log.Error().Msgf("Couldn't write response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return false
 	}
-	return true
 }
 
 func IsAlreadyExists(err error) bool {
