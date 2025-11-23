@@ -5,8 +5,8 @@ import (
 	"avito-trainee/domains/models"
 	"avito-trainee/external/httpserver"
 	"avito-trainee/helpers"
-	"errors"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -15,9 +15,9 @@ var _ httpserver.StorageItf = &Database{}
 func (db *Database) CreateTeam(team *models.Team) (*models.ErrorType, error) {
 	var errorModel *models.ErrorType
 	err := db.Transaction(func(tx *gorm.DB) error {
-		err := db.Create(&models.Team{TeamName: team.TeamName}).Error
+		err := tx.Create(&models.Team{TeamName: team.TeamName}).Error
 		if err != nil {
-			if errors.Is(err, gorm.ErrDuplicatedKey) {
+			if strings.Contains(err.Error(), constants.PG_ERROR_CODE) || strings.Contains(err.Error(), constants.PK_ERROR_CODE) {
 				errorModel = helpers.GetError(constants.TEAM_EXISTS, team.TeamName)
 			}
 			return err
@@ -27,9 +27,9 @@ func (db *Database) CreateTeam(team *models.Team) (*models.ErrorType, error) {
 			team.Members[i].TeamName = team.TeamName
 		}
 
-		err = db.Create(team.Members).Error
+		err = tx.Create(team.Members).Error
 		if err != nil {
-			if errors.Is(err, gorm.ErrDuplicatedKey) {
+			if strings.Contains(err.Error(), constants.PG_ERROR_CODE) || strings.Contains(err.Error(), constants.PK_ERROR_CODE) {
 				errorModel = helpers.GetError(constants.USER_EXISTS)
 			}
 			return err
@@ -41,8 +41,16 @@ func (db *Database) CreateTeam(team *models.Team) (*models.ErrorType, error) {
 
 func (db *Database) GetTeam(name string) (*models.Team, error) {
 	var team *models.Team
-	err := db.Preload("Members").Where("team_name = ?", name).
-		First(&team).Error
+	err := db.Where("team_name = ?", name).First(&team).Error
+	if err != nil {
+		return nil, err
+	}
+	var users []*models.User
+	err = db.Where("team_name = ?", name).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	team.Members = users
 	return team, err
 }
 

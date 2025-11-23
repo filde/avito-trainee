@@ -31,11 +31,8 @@ func (httpServer *HttpServer) addTeam(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
 
@@ -52,11 +49,8 @@ func (httpServer *HttpServer) addTeam(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errorByte)
-		if !ok {
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteResponse(w, errorByte)
 		return
 	}
 
@@ -73,11 +67,12 @@ func (httpServer *HttpServer) addTeam(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 	ok := helpers.WriteResponse(w, teamByte)
 	if !ok {
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
 }
 
 func (httpServer *HttpServer) getTeam(w http.ResponseWriter, r *http.Request) {
