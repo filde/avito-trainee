@@ -20,4 +20,3 @@ const BAD_BODY = "BAD_BODY"
 const BAD_BODY_TEXT = "bad body response"
 
 const PG_ERROR_CODE = "23505"
-const PK_ERROR_CODE = "23503"

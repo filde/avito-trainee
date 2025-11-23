@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"strings"
 )
 
 func GetError(code string, optional ...string) *models.ErrorType {
@@ -43,4 +44,8 @@ func WriteResponse(w http.ResponseWriter, response []byte) bool {
 		return false
 	}
 	return true
+}
+
+func IsAlreadyExists(err error) bool {
+	return strings.Contains(err.Error(), constants.PG_ERROR_CODE)
 }

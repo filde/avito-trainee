@@ -6,7 +6,6 @@ import (
 	"avito-trainee/external/httpserver"
 	"avito-trainee/helpers"
 	"gorm.io/gorm"
-	"strings"
 	"time"
 )
 
@@ -17,7 +16,7 @@ func (db *Database) CreateTeam(team *models.Team) (*models.ErrorType, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Create(&models.Team{TeamName: team.TeamName}).Error
 		if err != nil {
-			if strings.Contains(err.Error(), constants.PG_ERROR_CODE) || strings.Contains(err.Error(), constants.PK_ERROR_CODE) {
+			if helpers.IsAlreadyExists(err) {
 				errorModel = helpers.GetError(constants.TEAM_EXISTS, team.TeamName)
 			}
 			return err
@@ -29,7 +28,7 @@ func (db *Database) CreateTeam(team *models.Team) (*models.ErrorType, error) {
 
 		err = tx.Create(team.Members).Error
 		if err != nil {
-			if strings.Contains(err.Error(), constants.PG_ERROR_CODE) || strings.Contains(err.Error(), constants.PK_ERROR_CODE) {
+			if helpers.IsAlreadyExists(err) {
 				errorModel = helpers.GetError(constants.USER_EXISTS)
 			}
 			return err
