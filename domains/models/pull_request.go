@@ -9,9 +9,8 @@ type PullRequest struct {
 	Status            string     `gorm:"not null;type:status_enum" json:"status"`
 	CreatedAt         *time.Time `json:"-"`
 	MergedAt          *time.Time `json:"mergedAt;omitempty"`
-	User              `gorm:"foreignKey:AuthorID;references:UserID" json:"-"`
-	Reviewers         []*User  `gorm:"many2many:pr_reviewers" json:"-"`
-	AssignedReviewers []string `json:"assigned_reviewers" gorm:"-"`
+	Author            User       `gorm:"foreignKey:AuthorID;references:UserID" json:"-"`
+	AssignedReviewers []string   `json:"assigned_reviewers" gorm:"-"`
 }
 
 type PullRequestResponse struct {

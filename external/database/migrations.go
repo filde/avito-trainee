@@ -18,7 +18,7 @@ func autoMigrate(db *gorm.DB) {
   			END IF;
 			END
 			$$;
-	`), constants.OPEN_STATUS, constants.MERGED_STATUS).Error
+	`, constants.OPEN_STATUS, constants.MERGED_STATUS)).Error
 	if err != nil {
 		log.Panic().Msgf("Couldn't create enum type: %v", err)
 	}
@@ -26,6 +26,7 @@ func autoMigrate(db *gorm.DB) {
 		&models.Team{},
 		&models.User{},
 		&models.PullRequest{},
+		&models.PullRequestReviewers{},
 	)
 	if err != nil {
 		log.Panic().Msgf("Couldn't auto migrate: %v", err)

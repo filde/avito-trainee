@@ -6,7 +6,7 @@ type User struct {
 	TeamName     string `gorm:"not null" json:"-"`
 	IsActive     bool   `gorm:"not null" json:"is_active"`
 	Team         `gorm:"foreignKey:TeamName;references:TeamName" json:"-"`
-	PullRequests []*PullRequest `gorm:"many2many:pr_reviewers"`
+	PullRequests []*PullRequest `gorm:"-"`
 }
 
 type UserResponse struct {
