@@ -81,7 +81,7 @@ func (httpServer *HttpServer) getUserReview(w http.ResponseWriter, r *http.Reque
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		helpers.WriteResponse(w, errByte)
 		return
 	}

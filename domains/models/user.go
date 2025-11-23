@@ -21,6 +21,6 @@ type UserFull struct {
 }
 
 type UsersPR struct {
-	UserID       string         `json:"user_id"`
-	PullRequests []*PullRequest `json:"pull_requests"`
+	UserID       string     `json:"user_id"`
+	PullRequests []*PRShort `json:"pull_requests" gorm:"-"`
 }

@@ -67,7 +67,18 @@ func (db *Database) GetUser(userID string) (*models.UserFull, error) {
 
 func (db *Database) GetUserPR(userID string) (*models.UsersPR, error) {
 	var user *models.UsersPR
-	err := db.Model(&models.User{}).Preload("PullRequests").First(*user).Error
+	err := db.Model(&models.User{}).Where("user_id = ?", userID).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var prList []*models.PRShort
+	err = db.Model(&models.PullRequest{}).Joins("join pull_request_reviewers on pull_request_id=pull_req_id").
+		Where("reviewer_id = ?", userID).Find(&prList).Error
+	if err != nil {
+		return nil, err
+	}
+	user.PullRequests = prList
 	return user, err
 }
 
