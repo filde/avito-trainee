@@ -1,17 +1,17 @@
 version: "3.8"
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - ./db-data:/var/lib/postgresql/data
-    ports:
-      - "6432:5432"
+#  postgres:
+#    image: postgres:15
+#    container_name: postgres
+#    restart: always
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_DB: postgres
+#      POSTGRES_PASSWORD: postgres
+#    volumes:
+#      - ./db-data:/var/lib/postgresql/data
+#    ports:
+#      - "6432:5432"
   avito-trainee:
     image: avito-trainee:latest
     container_name: avito-trainee
