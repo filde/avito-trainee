@@ -81,29 +81,41 @@ func (db *Database) GetUserPR(userID string) (*models.UsersPR, error) {
 	return user, err
 }
 
-func (db *Database) TeamExists(name string) error {
-	var i int
-	err := db.Model(&models.Team{}).Where("team_name = ?", name).Select("1").
-		First(&i).Error
-	return err
-}
-
-func (db *Database) GetTeamUsers(name string, author string) ([]*models.User, error) {
-	var users []*models.User
+func (db *Database) GetTeamReviewers(name string, author string) ([]string, error) {
+	var users []string
 	err := db.Model(&models.User{}).Where("team_name = ?", name).
 		Where("user_id <> ?", author).Where("is_active = ?", true).
-		Order("RANDOM()").Limit(2).Find(&users).Error
+		Order("RANDOM()").Limit(2).Select("user_id").Find(&users).Error
 	return users, err
 }
 
 func (db *Database) CreatePR(pr *models.PullRequest) error {
-	err := db.Create(&pr).Error
+	err := db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&pr).Error
+		if err != nil {
+			return err
+		}
+
+		prRevList := make([]*models.PullRequestReviewers, len(pr.AssignedReviewers))
+		for i := 0; i < len(prRevList); i++ {
+			prRevList[i] = &models.PullRequestReviewers{PullReqID: pr.PullRequestID, ReviewerID: pr.AssignedReviewers[i]}
+		}
+
+		return tx.Create(&prRevList).Error
+	})
+
 	return err
 }
 
 func (db *Database) GetPR(id string) (*models.PullRequest, error) {
 	var pr *models.PullRequest
-	err := db.Model(&models.PullRequest{}).Preload("Reviewers").Where("pull_request_id = ?", id).First(&pr).Error
+	err := db.Model(&models.PullRequest{}).Where("pull_request_id = ?", id).First(&pr).Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Model(&models.PullRequestReviewers{}).Where("pull_req_id = ?", id).
+		Select("reviewer_id").Find(&pr.AssignedReviewers).Error
 	return pr, err
 }
 

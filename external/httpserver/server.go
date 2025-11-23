@@ -12,12 +12,11 @@ import (
 type StorageItf interface {
 	CreateTeam(team *models.Team) (*models.ErrorType, error)
 	GetTeam(name string) (*models.Team, error)
-	TeamExists(name string) error
 
 	UpdateUserActivity(userID string, isActive bool) error
 	GetUser(userID string) (*models.UserFull, error)
 	GetUserPR(userID string) (*models.UsersPR, error)
-	GetTeamUsers(name string, author string) ([]*models.User, error)
+	GetTeamReviewers(name string, author string) ([]string, error)
 	GetTeamActiveUser(team string, notAllowed ...string) (*models.User, error)
 
 	CreatePR(pr *models.PullRequest) error

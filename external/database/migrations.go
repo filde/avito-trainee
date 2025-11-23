@@ -13,8 +13,8 @@ func autoMigrate(db *gorm.DB) {
 			DO
 			$$
 			BEGIN
-			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_enum') THEN
-    			create type status_enum AS ENUM ('%v', '%v');
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'pr_status_enum') THEN
+    			create type pr_status_enum AS ENUM ('%v', '%v');
   			END IF;
 			END
 			$$;
