@@ -1,7 +1,9 @@
 package httpserver
 
 import (
+	"avito-trainee/common/metrics"
 	"avito-trainee/domains/models"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"os"
 	"time"
@@ -28,17 +30,19 @@ type StorageItf interface {
 type HttpServer struct {
 	storage     StorageItf
 	siteHandler http.Handler
+	ms          *metrics.Metrics
 }
 
-func InitAndStart(storage StorageItf) *HttpServer {
-	httpServer := Init(storage)
+func InitAndStart(storage StorageItf, ms *metrics.Metrics) *HttpServer {
+	httpServer := Init(storage, ms)
 	httpServer.Start()
 	return httpServer
 }
 
-func Init(storage StorageItf) *HttpServer {
+func Init(storage StorageItf, ms *metrics.Metrics) *HttpServer {
 	httpServer := &HttpServer{
 		storage: storage,
+		ms:      ms,
 	}
 
 	mux := http.NewServeMux()
@@ -53,6 +57,7 @@ func Init(storage StorageItf) *HttpServer {
 	mux.HandleFunc("POST /pullRequest/merge", httpServer.mergePR)
 	mux.HandleFunc("POST /pullRequest/reassign", httpServer.reassignPR)
 	mux.HandleFunc("/health", httpServer.health)
+	mux.Handle("GET /metrics", promhttp.Handler())
 
 	// Middlewares
 	httpServer.siteHandler = httpServer.metricsMiddleware(mux)

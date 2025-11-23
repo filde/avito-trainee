@@ -33,6 +33,7 @@ func (httpServer *HttpServer) panicMiddleware(next http.Handler) http.Handler {
 
 func (httpServer *HttpServer) metricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpServer.ms.ApiRequests.Inc()
 		next.ServeHTTP(w, r)
 	})
 }

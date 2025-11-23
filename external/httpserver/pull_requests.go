@@ -84,6 +84,8 @@ func (httpServer *HttpServer) createPR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	httpServer.ms.PRCount.WithLabelValues(constants.OPEN_STATUS).Inc()
+
 	prNew, err := httpServer.storage.GetPR(pr.PullRequestID)
 	if err != nil {
 		log.Error().Msgf("Couldn't get created pr from db: %v", err)
@@ -150,6 +152,9 @@ func (httpServer *HttpServer) mergePR(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	httpServer.ms.PRCount.WithLabelValues(constants.OPEN_STATUS).Dec()
+	httpServer.ms.PRCount.WithLabelValues(constants.MERGED_STATUS).Inc()
 
 	prByte, err := json.Marshal(&models.PullRequestResponse{PR: prNew})
 	if err != nil {
