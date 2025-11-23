@@ -68,11 +68,7 @@ func (httpServer *HttpServer) addTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	ok := helpers.WriteResponse(w, teamByte)
-	if !ok {
-		return
-	}
-
+	helpers.WriteResponse(w, teamByte)
 }
 
 func (httpServer *HttpServer) getTeam(w http.ResponseWriter, r *http.Request) {
@@ -86,11 +82,8 @@ func (httpServer *HttpServer) getTeam(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
 
@@ -103,11 +96,8 @@ func (httpServer *HttpServer) getTeam(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			ok := helpers.WriteResponse(w, errByte)
-			if !ok {
-				return
-			}
 			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
 			return
 		}
 		log.Error().Msgf("Couldn't get team from db: %v", err)
@@ -121,8 +111,5 @@ func (httpServer *HttpServer) getTeam(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	ok := helpers.WriteResponse(w, teamByte)
-	if !ok {
-		return
-	}
+	helpers.WriteResponse(w, teamByte)
 }
