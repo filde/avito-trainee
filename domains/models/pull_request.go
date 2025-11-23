@@ -14,7 +14,8 @@ type PullRequest struct {
 }
 
 type PullRequestResponse struct {
-	PR *PullRequest `json:"pr"`
+	PR         *PullRequest `json:"pr"`
+	ReplacedBy string       `json:"replaced_by,omitempty"`
 }
 
 type NewPRReviewer struct {
