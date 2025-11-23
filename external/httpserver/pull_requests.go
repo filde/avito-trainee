@@ -119,18 +119,14 @@ func (httpServer *HttpServer) mergePR(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		ok := helpers.WriteResponse(w, errByte)
-		if !ok {
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteResponse(w, errByte)
 		return
 	}
 
 	tNow := time.Now()
 	err = httpServer.storage.MergePR(pr.PullRequestID, &tNow)
 	if err != nil {
-
 		log.Error().Msgf("Couldn't merge pr %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -145,11 +141,8 @@ func (httpServer *HttpServer) mergePR(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			ok := helpers.WriteResponse(w, errByte)
-			if !ok {
-				return
-			}
 			w.WriteHeader(http.StatusNotFound)
+			helpers.WriteResponse(w, errByte)
 			return
 		}
 		log.Error().Msgf("Couldn't get merged pr from db: %v", err)
@@ -157,20 +150,13 @@ func (httpServer *HttpServer) mergePR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//for i := 0; i < len(prNew.Reviewers); i++ {
-	//	prNew.AssignedReviewers[i] = prNew.Reviewers[i].UserID
-	//}
-
 	prByte, err := json.Marshal(&models.PullRequestResponse{PR: prNew})
 	if err != nil {
 		log.Error().Msgf("Couldn't marshal pr json: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	ok := helpers.WriteResponse(w, prByte)
-	if !ok {
-		return
-	}
+	helpers.WriteResponse(w, prByte)
 }
 
 func (httpServer *HttpServer) reassignPR(w http.ResponseWriter, r *http.Request) {
